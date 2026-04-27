@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -36,6 +37,23 @@ func (s *registryServiceImpl) ListServers(ctx context.Context, filter *database.
 	// If limit is not set or negative, use a default limit
 	if limit <= 0 {
 		limit = 30
+	}
+
+	// Apply server allowlist from configuration
+	if filter == nil {
+		filter = &database.ServerFilter{}
+	}
+	if s.cfg.AllowedServers != "" {
+		// Parse comma-separated list of allowed servers
+		allowedNames := strings.Split(s.cfg.AllowedServers, ",")
+		// Trim whitespace from each name
+		for i := range allowedNames {
+			allowedNames[i] = strings.TrimSpace(allowedNames[i])
+		}
+		// Only apply if we have valid names after trimming
+		if len(allowedNames) > 0 && allowedNames[0] != "" {
+			filter.AllowedNames = allowedNames
+		}
 	}
 
 	// Use the database's ListServers method with pagination and filtering

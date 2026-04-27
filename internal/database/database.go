@@ -29,6 +29,7 @@ type ServerFilter struct {
 	Version        *string    // for exact version matching
 	IsLatest       *bool      // for filtering latest versions only
 	IncludeDeleted *bool      // for including deleted packages in results (default: exclude)
+	AllowedNames   []string   // for allowlist filtering (if empty, no filtering applied)
 }
 
 // Database defines the interface for database operations

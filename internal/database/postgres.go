@@ -123,6 +123,16 @@ func buildFilterConditions(filter *ServerFilter, argIndex int) ([]string, []any,
 	if filter.IncludeDeleted == nil || !*filter.IncludeDeleted {
 		conditions = append(conditions, "status != 'deleted'")
 	}
+	if len(filter.AllowedNames) > 0 {
+		// Build IN clause for allowed server names
+		placeholders := make([]string, len(filter.AllowedNames))
+		for i := range filter.AllowedNames {
+			placeholders[i] = fmt.Sprintf("$%d", argIndex)
+			args = append(args, filter.AllowedNames[i])
+			argIndex++
+		}
+		conditions = append(conditions, fmt.Sprintf("server_name IN (%s)", strings.Join(placeholders, ", ")))
+	}
 
 	return conditions, args, argIndex
 }

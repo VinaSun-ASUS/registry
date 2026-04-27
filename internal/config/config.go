@@ -24,6 +24,10 @@ type Config struct {
 	OIDCExtraClaims  string `env:"OIDC_EXTRA_CLAIMS" envDefault:""`
 	OIDCEditPerms    string `env:"OIDC_EDIT_PERMISSIONS" envDefault:""`
 	OIDCPublishPerms string `env:"OIDC_PUBLISH_PERMISSIONS" envDefault:""`
+
+	// Server allowlist - comma-separated list of allowed server names
+	// If empty, all servers are allowed
+	AllowedServers string `env:"ALLOWED_SERVERS" envDefault:""`
 }
 
 // NewConfig creates a new configuration with default values
