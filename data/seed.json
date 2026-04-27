@@ -4,36 +4,19 @@
     "name": "io.figma/mcp-server",
     "description": "Figma MCP Server for design tool integration.",
     "repository": {
-      "url": "https://github.com/figma/mcp-server.git",
+      "url": "https://github.com/modelcontextprotocol/servers.git",
       "source": "github"
     },
-    "version": "1.0.0",
-    "icons": [
-      {
-        "src": "https://static.figma.com/app/icon/1/favicon.png",
-        "mimeType": "image/png",
-        "sizes": [
-          "32x32"
-        ]
-      }
-    ],
+    "version": "0.6.2",
     "packages": [
       {
         "registryType": "npm",
-        "identifier": "@figma/mcp-server",
-        "version": "1.0.0",
+        "identifier": "@modelcontextprotocol/server-filesystem",
+        "version": "0.6.2",
         "runtimeHint": "npx",
         "transport": {
           "type": "stdio"
-        },
-        "environmentVariables": [
-          {
-            "description": "Figma API token for authentication",
-            "isRequired": true,
-            "isSecret": true,
-            "name": "FIGMA_API_TOKEN"
-          }
-        ]
+        }
       }
     ]
   },
