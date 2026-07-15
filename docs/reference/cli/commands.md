@@ -64,7 +64,7 @@ mcp-publisher login github [--registry=URL]
 - Opens browser for GitHub OAuth flow
 - Grants access to `io.github.{username}/*` and `io.github.{org}/*` namespaces
 
-#### GitHub OIDC (CI/CD)  
+#### GitHub OIDC (CI/CD)
 ```bash
 mcp-publisher login github-oidc [--registry=URL]
 ```
@@ -173,7 +173,7 @@ mcp-publisher login dns azure-key-vault --domain=example.com --vault MyKeyVault 
 ```bash
 mcp-publisher login http --domain=example.com --private-key=HEX_KEY [--registry=URL]
 ```
-- Verifies domain ownership via HTTPS endpoint  
+- Verifies domain ownership via HTTPS endpoint
 - Grants access to `com.example.*` namespaces
 - Requires Ed25519 private key (64-character hex) or ECDSA P-384 private key (96-character hex)
   - The private key can be stored in a cloud signing provider like Google KMS or Azure Key Vault.
@@ -272,7 +272,7 @@ mcp-publisher publish [PATH]
 # Basic publish
 mcp-publisher publish
 
-# Custom file location  
+# Custom file location
 mcp-publisher publish ./config/server.json
 ```
 

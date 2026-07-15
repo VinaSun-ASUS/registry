@@ -73,7 +73,7 @@ func TrailingSlashMiddleware(next http.Handler) http.Handler {
 		if r.URL.Path != "/" && strings.HasSuffix(r.URL.Path, "/") {
 			// Remove the trailing slash from the path
 			newPath := strings.TrimSuffix(r.URL.Path, "/")
-			
+
 			// Construct redirect URL safely - only use path and query to prevent open redirect
 			redirectURL := newPath
 			if r.URL.RawQuery != "" {

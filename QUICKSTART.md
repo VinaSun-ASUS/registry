@@ -1,36 +1,36 @@
-# 🚀 快速開始 - 輕量化 MCP Registry
+# 🚀 Quick Start - Lightweight MCP Registry
 
-## 📋 已完成的重構
+## 📋 Completed Refactoring
 
-✅ **完全重寫 `cmd/registry/main.go`**  
-✅ **移除所有資料庫依賴**  
-✅ **僅使用 Go 標準庫**  
-✅ **從 `data/seed.json` 讀取資料**  
-✅ **支援所有必要的 API 端點**  
+✅ **Fully rewrote `cmd/registry/main.go`**
+✅ **Removed all database dependencies**
+✅ **Uses only the Go standard library**
+✅ **Reads data from `data/seed.json`**
+✅ **Supports all required API endpoints**
 
 ---
 
-## 🎯 立即使用（三步驟）
+## 🎯 Get Started (Three Steps)
 
-### 步驟 1: 啟動伺服器
+### Step 1: Start the Server
 
-使用原有的啟動方式（**推薦**）：
+Using the existing startup method (**recommended**):
 ```bash
 make dev-compose
 ```
 
-或直接執行：
+Or run directly:
 ```bash
 go run cmd/registry/main.go
 ```
 
-### 步驟 2: 驗證伺服器
+### Step 2: Verify the Server
 
 ```bash
 curl http://localhost:8081/v0.1/ping
 ```
 
-預期回應：
+Expected response:
 ```json
 {
   "status": "ok",
@@ -38,50 +38,48 @@ curl http://localhost:8081/v0.1/ping
 }
 ```
 
-### 步驟 3: 測試所有端點
+### Step 3: Test All Endpoints
 
 ```bash
 # Linux/Mac
 chmod +x test-lightweight.sh
 ./test-lightweight.sh
 
-# Windows PowerShell
-.\test-lightweight.ps1
 ```
 
 ---
 
-## 📡 API 端點總覽
+## 📡 API Endpoints Overview
 
-| 端點 | 方法 | 說明 |
-|------|------|------|
-| `/healthz` | GET | Azure/K8s 健康檢查 |
-| `/v0.1/ping` | GET | API 連線測試 |
-| `/v0.1/servers` | GET | 列出所有伺服器 |
-| `/v0.1/servers` | POST | 建立伺服器（不持久化） |
-| `/v0.1/servers/{name}/versions/latest` | GET | 取得最新版本 |
-| `/v0.1/servers/{name}/versions/{version}` | GET | 取得特定版本 |
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/healthz` | GET | Azure/K8s health check |
+| `/v0.1/ping` | GET | API connectivity test |
+| `/v0.1/servers` | GET | List all servers |
+| `/v0.1/servers` | POST | Create a server (non-persistent) |
+| `/v0.1/servers/{name}/versions/latest` | GET | Get latest version |
+| `/v0.1/servers/{name}/versions/{version}` | GET | Get specific version |
 
 ---
 
-## 🧪 快速測試
+## 🧪 Quick Tests
 
-### 測試 1: Ping
+### Test 1: Ping
 ```bash
 curl http://localhost:8081/v0.1/ping
 ```
 
-### 測試 2: 列出伺服器
+### Test 2: List Servers
 ```bash
 curl http://localhost:8081/v0.1/servers | jq '.metadata'
 ```
 
-### 測試 3: 取得 Figma MCP Server
+### Test 3: Get Figma MCP Server
 ```bash
 curl "http://localhost:8081/v0.1/servers/io.figma%2Fmcp-server/versions/latest" | jq '{name, version}'
 ```
 
-### 測試 4: POST 建立伺服器
+### Test 4: POST Create Server
 ```bash
 curl -X POST http://localhost:8081/v0.1/servers \
   -H "Content-Type: application/json" \
@@ -94,26 +92,26 @@ curl -X POST http://localhost:8081/v0.1/servers \
 
 ---
 
-## 🎯 主要改進
+## 🎯 Key Improvements
 
-### 之前（需要資料庫）
+### Before (requires database)
 ```go
-// 需要連接 PostgreSQL
+// Requires connecting to PostgreSQL
 db, err = database.NewPostgreSQL(ctx, cfg.DatabaseURL)
 
-// 需要大量 internal 套件
+// Requires many internal packages
 "github.com/modelcontextprotocol/registry/internal/api"
 "github.com/modelcontextprotocol/registry/internal/database"
 "github.com/modelcontextprotocol/registry/internal/service"
 ...
 ```
 
-### 現在（完全獨立）
+### Now (fully standalone)
 ```go
-// 直接讀取 JSON 檔案
+// Directly reads JSON file
 registry, err = loadSeedData("/data/seed.json")
 
-// 僅使用 Go 標準庫
+// Uses only the Go standard library
 "context"
 "encoding/json"
 "net/http"
@@ -122,79 +120,59 @@ registry, err = loadSeedData("/data/seed.json")
 
 ---
 
-## 📊 效能比較
+## 🔧 Environment Variables
 
-| 項目 | 原版本 | 輕量版 |
-|------|--------|--------|
-| 啟動時間 | ~5-10 秒 | **< 1 秒** |
-| 記憶體使用 | ~100-200 MB | **< 20 MB** |
-| 依賴套件 | 20+ | **0** (僅標準庫) |
-| Docker 映像 | ~100 MB | **~15 MB** |
-| 需要資料庫 | ✅ 是 | ❌ 否 |
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `PORT` | `8080` | HTTP port |
+| `MCP_REGISTRY_SEED_FROM` | `/data/seed.json` | Seed file path |
 
 ---
 
-## 🔧 環境變數
-
-| 變數 | 預設值 | 用途 |
-|------|--------|------|
-| `PORT` | `8080` | HTTP 埠號 |
-| `MCP_REGISTRY_SEED_FROM` | `/data/seed.json` | Seed 檔案路徑 |
-
----
-
-## 📁 檔案結構
+## 📁 File Structure
 
 ```
 registry/
 ├── cmd/
 │   └── registry/
-│       └── main.go              ✨ 已重構 - 輕量化版本
+│       └── main.go              ✨ Refactored - lightweight version
 ├── data/
-│   └── seed.json                📊 資料來源
-├── test-lightweight.sh          🧪 測試腳本 (Linux/Mac)
-├── test-lightweight.ps1         🧪 測試腳本 (Windows)
-├── LIGHTWEIGHT_README.md        📚 完整文件
-└── QUICKSTART.md                📚 本檔案
+│   └── seed.json                📊 Data source
+├── test-lightweight.sh          🧪 Test script (Linux/Mac)
+└── QUICKSTART.md                📚 This file
 ```
 
 ---
 
-## 🎉 就是這麼簡單！
+## 🎉 It's that simple!
 
-1. **啟動**: `make dev-compose`
-2. **測試**: `./test-lightweight.sh`
-3. **完成**: ✅
-
----
-
-## 📚 詳細文件
-
-查看完整文件: [LIGHTWEIGHT_README.md](LIGHTWEIGHT_README.md)
+1. **Start**: `make dev-compose`
+2. **Test**: `./test-lightweight.sh`
+3. **Done**: ✅
 
 ---
 
-## 💡 常見問題
+## 💡 FAQ
 
-### Q: 如何更改埠號？
+### Q: How do I change the port?
 ```bash
 PORT=9090 go run cmd/registry/main.go
 ```
 
-### Q: 如何使用不同的資料檔案？
+### Q: How do I use a different data file?
 ```bash
 MCP_REGISTRY_SEED_FROM=my-data.json go run cmd/registry/main.go
 ```
 
-### Q: POST 的資料會被儲存嗎？
-不會。這是輕量版，所有 POST 請求僅回應成功訊息，不會持久化。
+### Q: Will POST data be persisted?
+No. This is the lightweight version — all POST requests only return a success message and are not persisted.
 
-### Q: 可以在生產環境使用嗎？
-可以，但僅適合靜態配置的場景。如果需要動態新增/修改伺服器，請使用原版（帶資料庫）。
+### Q: Can it be used in production?
+Yes, but only for static configuration scenarios. If you need to dynamically add/modify servers, use the full version (with database).
 
 ---
 
-## 🚀 部署建議
+## 🚀 Deployment Recommendations
 
 ### Docker
 ```bash
@@ -233,6 +211,6 @@ spec:
 
 ---
 
-**建立日期**: 2026-06-01  
-**版本**: Lightweight v1.0  
-**適用於**: 靜態配置、輕量部署、開發測試
+**Created**: 2026-06-01
+**Version**: Lightweight v1.0
+**Suitable for**: Static configuration, lightweight deployment, development and testing

@@ -63,7 +63,7 @@ jobs:
 
       - name: Save image as artifact for downstream job
         run: |
-          docker save "${IMAGE_NAME}:${{ steps.set_tag.outputs.tag }}" -o /tmp/${IMAGE_NAME}.tar
+          docker save "${IMAGE_NAME}:${{ steps.set_tag.outputs.tag }}" -o "/tmp/${IMAGE_NAME}.tar"
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
