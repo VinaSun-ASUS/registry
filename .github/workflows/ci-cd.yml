@@ -1,0 +1,131 @@
+name: Enterprise Allowlist CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+env:
+  IMAGE_NAME: mcp-registry
+
+jobs:
+  # ---------------------------------------------------------------------
+  # 1) Lint & Test — validate enterprise-allowlist.json before anything
+  #    else is allowed to build. Blocks the PR/merge on any violation.
+  # ---------------------------------------------------------------------
+  validate:
+    name: Lint & Test (allowlist validation)
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+
+      - name: Set up Go
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
+        with:
+          go-version: 'stable'
+          cache: true
+
+      - name: Validate enterprise-allowlist.json
+        run: go run scripts/validate_allowlist.go
+
+  # ---------------------------------------------------------------------
+  # 2) Build — docker build tagged with a Taipei-time timestamp.
+  #    `latest` is intentionally never used as the deploy tag.
+  # ---------------------------------------------------------------------
+  build:
+    name: Build Docker image
+    needs: validate
+    runs-on: ubuntu-24.04
+    outputs:
+      image_tag: ${{ steps.set_tag.outputs.tag }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+
+      # Explicitly reject `latest`: use a Taipei-time timestamp as the
+      # unique, traceable, immutable image tag instead.
+      - name: Generate timestamp tag (Asia/Taipei)
+        id: set_tag
+        run: |
+          TAG=$(TZ='Asia/Taipei' date +'%Y%m%d%H%M%S')
+          echo "Generated image tag: $TAG"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Docker build
+        run: |
+          docker build -t "${IMAGE_NAME}:${{ steps.set_tag.outputs.tag }}" .
+
+      - name: Save image as artifact for downstream job
+        run: |
+          docker save "${IMAGE_NAME}:${{ steps.set_tag.outputs.tag }}" -o /tmp/${IMAGE_NAME}.tar
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: docker-image
+          path: /tmp/${{ env.IMAGE_NAME }}.tar
+          retention-days: 1
+
+  # ---------------------------------------------------------------------
+  # 3) Push to ACR — pushes the timestamped image to Azure Container
+  #    Registry. Only runs on an actual push to main (never on
+  #    pull_request). Deployment to the Web App and any rollback are
+  #    handled manually by engineers via the Azure Portal — see the
+  #    note at the bottom of this job.
+  # ---------------------------------------------------------------------
+  push-to-acr:
+    name: Push to ACR
+    needs: build
+    runs-on: ubuntu-24.04
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    env:
+      IMAGE_TAG: ${{ needs.build.outputs.image_tag }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: docker-image
+          path: /tmp
+
+      - name: Load built image
+        run: docker load -i /tmp/${{ env.IMAGE_NAME }}.tar
+
+      # -----------------------------------------------------------------
+      # ACR login template block (fill in the following Secrets /
+      # Variables when wiring this up for real):
+      #   secrets.ACR_LOGIN_SERVER  -> e.g. myregistry.azurecr.io
+      #   secrets.ACR_USERNAME      -> ACR admin username or Service
+      #                                Principal appId
+      #   secrets.ACR_PASSWORD      -> ACR admin password or Service
+      #                                Principal password
+      # -----------------------------------------------------------------
+      - name: Log in to Azure Container Registry
+        uses: azure/docker-login@15c4aadf093404726ab2ff205b2cdd33fa6d054c # v1
+        with:
+          login-server: ${{ secrets.ACR_LOGIN_SERVER }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: Tag image for ACR
+        run: |
+          docker tag "${IMAGE_NAME}:${IMAGE_TAG}" "${{ secrets.ACR_LOGIN_SERVER }}/${IMAGE_NAME}:${IMAGE_TAG}"
+
+      - name: Push image to ACR
+        run: |
+          docker push "${{ secrets.ACR_LOGIN_SERVER }}/${IMAGE_NAME}:${IMAGE_TAG}"
+
+      # -----------------------------------------------------------------
+      # Deployment & rollback policy:
+      # This workflow is only responsible for reliably pushing the
+      # timestamped image to ACR. Actual production deployment and any
+      # rollback are always performed manually by an engineer in the
+      # Azure Portal Web App, by selecting the corresponding timestamp
+      # tag to update to and reviewing the change before applying it.
+      # -----------------------------------------------------------------
