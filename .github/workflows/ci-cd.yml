@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write # let GitHub be able to request a temporary token from Azure
 
 env:
   IMAGE_NAME: mcp-registry
@@ -98,28 +99,29 @@ jobs:
         run: docker load -i /tmp/${{ env.IMAGE_NAME }}.tar
 
       # -----------------------------------------------------------------
-      # ACR login template block (fill in the following Secrets /
-      # Variables when wiring this up for real):
-      #   secrets.ACR_LOGIN_SERVER  -> e.g. myregistry.azurecr.io
-      #   secrets.ACR_USERNAME      -> ACR admin username or Service
-      #                                Principal appId
-      #   secrets.ACR_PASSWORD      -> ACR admin password or Service
-      #                                Principal password
+      # OIDC login: GitHub requests a short-lived token from Azure using
+      # the User-assigned Managed Identity — no Client Secret required.
+      # Required secrets: AZURE_CLIENT_ID, AZURE_TENANT_ID,
+      #                   AZURE_SUBSCRIPTION_ID
       # -----------------------------------------------------------------
-      - name: Log in to Azure Container Registry
-        uses: azure/docker-login@15c4aadf093404726ab2ff205b2cdd33fa6d054c # v1
+      - name: Azure login (OIDC)
+        id: azure-login
+        uses: azure/login@v2
         with:
-          login-server: ${{ secrets.ACR_LOGIN_SERVER }}
-          username: ${{ secrets.ACR_USERNAME }}
-          password: ${{ secrets.ACR_PASSWORD }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Log in to Azure Container Registry
+        run: az acr login --name asusmcpregistry
 
       - name: Tag image for ACR
         run: |
-          docker tag "${IMAGE_NAME}:${IMAGE_TAG}" "${{ secrets.ACR_LOGIN_SERVER }}/${IMAGE_NAME}:${IMAGE_TAG}"
+          docker tag "${IMAGE_NAME}:${IMAGE_TAG}" "asusmcpregistry.azurecr.io/${IMAGE_NAME}:${IMAGE_TAG}"
 
       - name: Push image to ACR
         run: |
-          docker push "${{ secrets.ACR_LOGIN_SERVER }}/${IMAGE_NAME}:${IMAGE_TAG}"
+          docker push "asusmcpregistry.azurecr.io/${IMAGE_NAME}:${IMAGE_TAG}"
 
       # -----------------------------------------------------------------
       # Deployment & rollback policy:
