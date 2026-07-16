@@ -175,7 +175,7 @@ Backups are encrypted using Restic. To access the backup data:
    # Local (MinIO) - ensure port-forward is active: kubectl port-forward -n minio svc/minio 9000:9000 9001:9001
    AWS_ACCESS_KEY_ID=minioadmin AWS_SECRET_ACCESS_KEY=minioadmin \
      aws --endpoint-url http://localhost:9000 s3 sync s3://k8up-backups/ ./backup-files/
-   
+
    # GCS (staging/production)
    gsutil -m cp -r gs://mcp-registry-{staging|prod}-backups/* ./backup-files/
    ```
@@ -221,6 +221,6 @@ kubectl logs -l app=postgres
 
 ### Check Backup Status
 ```bash
-kubectl describe schedule.k8up.io 
+kubectl describe schedule.k8up.io
 kubectl get backup
 ```

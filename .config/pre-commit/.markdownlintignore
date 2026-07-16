@@ -1,0 +1,4 @@
+# Files and directories to ignore for markdownlint
+complete.md
+vendor/
+node_modules/

@@ -5,16 +5,16 @@
 CREATE TABLE server_extensions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     server_id UUID NOT NULL REFERENCES servers(id) ON DELETE CASCADE,
-    
+
     -- Registry metadata as structured columns
     published_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     is_latest BOOLEAN NOT NULL DEFAULT true,
     release_date TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    
+
     -- Publisher extensions as flexible JSONB
     publisher_extensions JSONB DEFAULT '{}'::jsonb,
-    
+
     -- Ensure one extension record per server
     UNIQUE(server_id)
 );
@@ -29,7 +29,7 @@ CREATE INDEX idx_server_extensions_publisher_gin ON server_extensions USING GIN(
 
 -- Migrate existing data from servers table to server_extensions table
 INSERT INTO server_extensions (server_id, published_at, updated_at, is_latest, release_date, publisher_extensions)
-SELECT 
+SELECT
     id,
     created_at, -- Use created_at as published_at
     updated_at,
@@ -47,16 +47,16 @@ CREATE OR REPLACE FUNCTION update_server_extensions_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
     -- Update the corresponding server_extensions record
-    UPDATE server_extensions 
-    SET updated_at = NOW() 
+    UPDATE server_extensions
+    SET updated_at = NOW()
     WHERE server_id = NEW.id;
-    
+
     RETURN NEW;
 END;
 $$ language 'plpgsql';
 
 -- Trigger to automatically update server_extensions updated_at when servers change
-CREATE TRIGGER update_server_extensions_on_server_update 
-    AFTER UPDATE ON servers 
-    FOR EACH ROW 
+CREATE TRIGGER update_server_extensions_on_server_update
+    AFTER UPDATE ON servers
+    FOR EACH ROW
     EXECUTE FUNCTION update_server_extensions_updated_at();

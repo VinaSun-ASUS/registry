@@ -33,32 +33,32 @@ run_test() {
     local test_name=$1
     local url=$2
     local expected_status=${3:-200}
-    
+
     echo -e "${BLUE}=== 测试: ${test_name} ===${NC}"
     echo -e "URL: ${url}"
-    
+
     # 获取响应和状态码
     response=$(curl -s -w "\n%{http_code}" "$url")
     http_code=$(echo "$response" | tail -n1)
     body=$(echo "$response" | sed '$d')
-    
+
     # 检查状态码
     if [ "$http_code" = "$expected_status" ]; then
         echo -e "${GREEN}✓ 状态码: ${http_code}${NC}"
     else
         echo -e "${RED}✗ 状态码: ${http_code} (期望: ${expected_status})${NC}"
     fi
-    
+
     # 显示响应体（美化）
     echo -e "\n${YELLOW}响应:${NC}"
     echo "$body" | $JQ_CMD | head -30
-    
+
     # 如果输出太长，显示提示
     line_count=$(echo "$body" | wc -l)
     if [ $line_count -gt 30 ]; then
         echo -e "${YELLOW}... (输出已截断，共 $line_count 行)${NC}"
     fi
-    
+
     echo ""
 }
 
@@ -66,12 +66,12 @@ run_test() {
 test_cors() {
     echo -e "${BLUE}=== 测试: CORS Headers ===${NC}"
     echo -e "URL: ${HOST}/v0.1/servers"
-    
+
     headers=$(curl -s -I -X OPTIONS \
         -H "Origin: https://example.com" \
         -H "Access-Control-Request-Method: GET" \
         "${HOST}/v0.1/servers")
-    
+
     if echo "$headers" | grep -iq "access-control-allow-origin"; then
         echo -e "${GREEN}✓ Access-Control-Allow-Origin 存在${NC}"
         echo "$headers" | grep -i "access-control"

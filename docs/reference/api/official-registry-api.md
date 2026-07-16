@@ -23,7 +23,7 @@ The official registry implements the [Generic Registry API](./generic-registry-a
 Publishing requires namespace-based authentication:
 
 - **GitHub OAuth** - For `io.github.*` namespaces
-- **GitHub OIDC** - For publishing from GitHub Actions  
+- **GitHub OIDC** - For publishing from GitHub Actions
 - **DNS verification** - For domain-based namespaces (`com.example.*`)
 - **HTTP verification** - For domain-based namespaces (`com.example.*`)
 

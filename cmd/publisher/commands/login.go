@@ -208,13 +208,13 @@ Examples:
 
   # Interactive GitHub login, using device code flow
   mcp-publisher login github
-  
+
   # Sign in using a specific Ed25519 private key for DNS authentication
   mcp-publisher login dns -algorithm ed25519 -domain example.com -private-key <64 hex chars>
 
   # Sign in using a specific ECDSA P-384 private key for DNS authentication
   mcp-publisher login dns -algorithm ecdsap384 -domain example.com -private-key <96 hex chars>
-  
+
   # Sign in with gcloud CLI, use Google Cloud KMS for signing in DNS authentication
   gcloud auth application-default login
   mcp-publisher login dns google-kms -domain example.com -resource projects/lotr/locations/global/keyRings/fellowship/cryptoKeys/frodo/cryptoKeyVersions/1

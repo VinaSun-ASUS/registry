@@ -270,24 +270,24 @@ func handleServers(w http.ResponseWriter, r *http.Request) {
 func handleListServers(w http.ResponseWriter, r *http.Request) {
 	// Build response with all latest versions
 	var serverList []map[string]interface{}
-	
+
 	for serverName, versions := range registry.servers {
 		// Check allowlist
 		if !isServerAllowed(serverName) {
 			continue
 		}
-		
+
 		if len(versions) > 0 {
 			// Get the latest version (last in array)
 			latest := versions[len(versions)-1]
-			
+
 			// Build the server object with all fields
 			serverObj := map[string]interface{}{
 				"name":        latest.Name,
 				"description": latest.Description,
 				"version":     latest.Version,
 			}
-			
+
 			// Add optional fields
 			if latest.Schema != "" {
 				serverObj["$schema"] = latest.Schema
@@ -301,7 +301,7 @@ func handleListServers(w http.ResponseWriter, r *http.Request) {
 			if latest.Packages != nil {
 				serverObj["packages"] = latest.Packages
 			}
-			
+
 			// Build the _meta object
 			metaObj := map[string]interface{}{
 				"io.modelcontextprotocol.registry/official": map[string]interface{}{
@@ -312,13 +312,13 @@ func handleListServers(w http.ResponseWriter, r *http.Request) {
 					"isLatest":        true,
 				},
 			}
-			
+
 			// Combine server and _meta into the response format
 			serverEntry := map[string]interface{}{
 				"server": serverObj,
 				"_meta":  metaObj,
 			}
-			
+
 			serverList = append(serverList, serverEntry)
 		}
 	}
@@ -374,7 +374,7 @@ func handleServerVersions(w http.ResponseWriter, r *http.Request) {
 	// Parse URL path: /v0.1/servers/{name}/versions/{version}
 	path := strings.TrimPrefix(r.URL.Path, "/v0.1/servers/")
 	parts := strings.Split(path, "/versions/")
-	
+
 	if len(parts) != 2 {
 		http.Error(w, "Invalid URL format. Expected: /v0.1/servers/{name}/versions/{version}", http.StatusBadRequest)
 		return

@@ -79,4 +79,3 @@ WHERE value ? '$schema' AND value IS NOT NULL;
 
 -- Clean up the helper function
 DROP FUNCTION IF EXISTS convert_object_keys_to_camelcase(jsonb);
-

@@ -190,6 +190,6 @@ The MCP Registry implementation is **fully compliant** with all v0.1 specificati
 
 ---
 
-**Last Updated**: April 27, 2026  
-**Registry Version**: v0.1  
+**Last Updated**: April 27, 2026
+**Registry Version**: v0.1
 **Implementation Status**: Production Ready

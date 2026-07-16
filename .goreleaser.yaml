@@ -21,7 +21,7 @@ builds:
       - -X main.Version={{.Version}}
       - -X main.GitCommit={{.FullCommit}}
       - -X main.BuildTime={{.Date}}
-    
+
   # Publisher CLI tool binary
   - id: publisher
     binary: mcp-publisher

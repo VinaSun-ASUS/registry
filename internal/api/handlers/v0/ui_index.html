@@ -156,7 +156,7 @@
                 }
                 // Prevent localhost and private IP ranges in custom URLs
                 const hostname = url.hostname.toLowerCase();
-                if (hostname === 'localhost' || 
+                if (hostname === 'localhost' ||
                     hostname === '127.0.0.1' ||
                     hostname.startsWith('192.168.') ||
                     hostname.startsWith('10.') ||
@@ -176,7 +176,7 @@
         function getBaseUrl() {
             const selection = localStorage.getItem('baseUrl') || 'local';
             let customUrl = localStorage.getItem('customUrl') || '';
-            
+
             // Sanitize customUrl to prevent XSS and SSRF
             if (customUrl) {
                 customUrl = customUrl.trim().substring(0, 2048); // Limit length
@@ -270,7 +270,7 @@
         document.getElementById('debug-apply').addEventListener('click', () => {
             const selection = document.querySelector('input[name="baseUrl"]:checked').value;
             let customUrl = document.getElementById('custom-url').value.trim();
-            
+
             // Validate custom URL before saving
             if (selection === 'custom' && customUrl) {
                 if (!isValidUrl(customUrl)) {
@@ -278,7 +278,7 @@
                     return;
                 }
             }
-            
+
             localStorage.setItem('baseUrl', selection);
             localStorage.setItem('customUrl', customUrl);
             location.reload();
